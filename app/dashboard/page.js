@@ -1,11 +1,12 @@
 "use client";
 
 import { motion } from "motion/react";
-import ExpensesView from "./components/ExpensesView";
-import { useExpenses } from "./components/ExpensesProvider";
+import Dashboard from "../components/Dashboard";
+import { useExpenses, useBudget } from "../components/ExpensesProvider";
 
-export default function Home() {
+export default function DashboardPage() {
   const expenses = useExpenses();
+  const budget = useBudget();
 
   return (
     <motion.div
@@ -13,7 +14,7 @@ export default function Home() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
     >
-      <ExpensesView expenses={expenses} />
+      <Dashboard expenses={expenses} budget={budget} />
     </motion.div>
   );
 }
