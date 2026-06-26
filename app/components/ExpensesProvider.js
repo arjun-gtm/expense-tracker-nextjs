@@ -4,11 +4,12 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const ExpensesContext = createContext({
   expenses: [],
+  incomes: [],
   budget: null,
   setBudgetValue: () => {},
 });
 
-export function ExpensesProvider({ expenses, budget, children }) {
+export function ExpensesProvider({ expenses, incomes = [], budget, children }) {
   // Budget lives in client state so saving/editing it updates the UI
   // instantly without a server re-render (no flash / no animation replay).
   const [budgetValue, setBudgetValue] = useState(budget);
@@ -21,7 +22,7 @@ export function ExpensesProvider({ expenses, budget, children }) {
 
   return (
     <ExpensesContext.Provider
-      value={{ expenses, budget: budgetValue, setBudgetValue }}
+      value={{ expenses, incomes, budget: budgetValue, setBudgetValue }}
     >
       {children}
     </ExpensesContext.Provider>
@@ -30,6 +31,10 @@ export function ExpensesProvider({ expenses, budget, children }) {
 
 export function useExpenses() {
   return useContext(ExpensesContext).expenses;
+}
+
+export function useIncomes() {
+  return useContext(ExpensesContext).incomes;
 }
 
 export function useBudget() {

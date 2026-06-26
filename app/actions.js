@@ -251,3 +251,87 @@ export async function clearBudget() {
 
   return { success: true, message: "Budget cleared." };
 }
+
+// ---------------------------------------------------------------------------
+// Income
+// ---------------------------------------------------------------------------
+
+// READ: fetch all income entries, newest first.
+export async function getIncomes() {
+  const incomes = await prisma.income.findMany({
+    orderBy: { date: "desc" },
+  });
+  return incomes.map((income) => ({
+    ...income,
+    amount: Number(income.amount),
+  }));
+}
+
+// CREATE: add a new income entry.
+export async function createIncome(prevState, formData) {
+  const source = formData.get("source")?.toString().trim() ?? "";
+  const rawAmount = formData.get("amount");
+  const amount =
+    rawAmount === null || rawAmount === "" ? NaN : parseFloat(rawAmount.toString());
+  const date = formData.get("date")?.toString() || "";
+
+  const errors = {};
+  if (!source) {
+    errors.source = "Source is required.";
+  } else if (source.length > MAX_TITLE_LENGTH) {
+    errors.source = `Source must be ${MAX_TITLE_LENGTH} characters or fewer.`;
+  }
+  if (Number.isNaN(amount)) {
+    errors.amount = "Amount is required.";
+  } else if (amount <= 0) {
+    errors.amount = "Amount must be greater than zero.";
+  } else if (amount > MAX_AMOUNT) {
+    errors.amount = "Amount is too large.";
+  }
+  if (date && Number.isNaN(new Date(date).getTime())) {
+    errors.date = "Invalid date.";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { success: false, errors, message: "Please fix the errors below." };
+  }
+
+  try {
+    await prisma.income.create({
+      data: {
+        source,
+        amount,
+        date: date ? new Date(date) : new Date(),
+      },
+    });
+  } catch (err) {
+    console.error("createIncome failed:", err);
+    return {
+      success: false,
+      errors: {},
+      message: "Could not save the income. Please try again.",
+    };
+  }
+
+  revalidatePath("/");
+  return { success: true, errors: {}, message: "Income added." };
+}
+
+// DELETE: remove an income entry.
+export async function deleteIncome(id) {
+  if (!id) {
+    return { success: false, message: "Income id is required." };
+  }
+  try {
+    await prisma.income.delete({ where: { id } });
+  } catch (err) {
+    console.error("deleteIncome failed:", err);
+    return {
+      success: false,
+      message: "Could not delete the income. Please try again.",
+    };
+  }
+
+  revalidatePath("/");
+  return { success: true, message: "Income deleted." };
+}

@@ -4,7 +4,11 @@ import { ThemeProvider } from "@/components/shadcn/theme-provider";
 import { Toaster } from "@/components/shadcn/sonner";
 import { ExpensesProvider } from "./components/ExpensesProvider";
 import AppHeader from "./components/AppHeader";
-import { getExpenses, getBudget } from "./actions";
+import { getExpenses, getBudget, getIncomes } from "./actions";
+
+// These pages read from the database at request time, so they must render
+// dynamically rather than being statically prerendered at build time.
+export const dynamic = "force-dynamic";
 
 const poppins = Poppins({
   variable: "--font-sans",
@@ -25,7 +29,11 @@ export const metadata = {
 export default async function RootLayout({ children }) {
   // Fetched once in the shared layout so navigating between Expenses and
   // Dashboard reads from already-loaded data (no refetch, no flash).
-  const [expenses, budget] = await Promise.all([getExpenses(), getBudget()]);
+  const [expenses, budget, incomes] = await Promise.all([
+    getExpenses(),
+    getBudget(),
+    getIncomes(),
+  ]);
 
   return (
     <html
@@ -41,9 +49,9 @@ export default async function RootLayout({ children }) {
           disableTransitionOnChange
           suppressHydrationWarning
         >
-          <ExpensesProvider expenses={expenses} budget={budget}>
-            <div className="animated-gradient flex flex-1 justify-center px-4 py-10 sm:py-14">
-              <main className="flex w-full max-w-6xl flex-col gap-8">
+          <ExpensesProvider expenses={expenses} incomes={incomes} budget={budget}>
+            <div className="animated-gradient flex flex-1 justify-center px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
+              <main className="flex w-full max-w-[1400px] flex-col gap-8">
                 <AppHeader />
                 {children}
               </main>

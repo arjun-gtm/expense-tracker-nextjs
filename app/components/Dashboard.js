@@ -7,7 +7,6 @@ import {
   Receipt,
   TrendingUp,
   CalendarDays,
-  Tag,
   ArrowUpRight,
 } from "lucide-react";
 
@@ -17,6 +16,9 @@ import { formatDate } from "@/lib/format";
 import { Card } from "@/components/shadcn/card";
 import { Badge } from "@/components/shadcn/badge";
 import BudgetTracker from "./BudgetTracker";
+import ExpenseTrendChart from "./ExpenseTrendChart";
+import CategoryPieChart from "./CategoryPieChart";
+import IncomeVsExpenseChart from "./IncomeVsExpenseChart";
 
 const container = {
   hidden: { opacity: 0 },
@@ -33,7 +35,7 @@ function startOfDay(date) {
   return d;
 }
 
-export default function Dashboard({ expenses, budget }) {
+export default function Dashboard({ expenses, budget, incomes = [] }) {
   const stats = useMemo(() => {
     const count = expenses.length;
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -123,6 +125,7 @@ export default function Dashboard({ expenses, budget }) {
     return (
       <div className="flex flex-col gap-6">
         <BudgetTracker budget={budget} spent={stats.thisMonth} />
+        <IncomeVsExpenseChart expenses={expenses} incomes={incomes} />
         <Card className="items-center gap-3 p-12 text-center">
           <Wallet className="size-10 text-muted-foreground" />
           <div className="flex flex-col gap-1">
@@ -174,56 +177,15 @@ export default function Dashboard({ expenses, budget }) {
         <BudgetTracker budget={budget} spent={stats.thisMonth} />
       </motion.div>
 
+      {/* Expense trend over time */}
+      <ExpenseTrendChart expenses={expenses} />
+
+      {/* Income vs expense comparison */}
+      <IncomeVsExpenseChart expenses={expenses} incomes={incomes} />
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Category breakdown with progress bars */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-        >
-          <Card className="gap-4 p-5">
-            <div className="flex items-center gap-2">
-              <Tag className="size-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">
-                Spending by Category
-              </h3>
-            </div>
-            <ul className="flex flex-col gap-3.5">
-              {stats.categories.map((cat) => {
-                const Icon = cat.icon;
-                return (
-                  <li key={cat.category} className="flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span
-                        className={`flex size-7 items-center justify-center rounded-md ${cat.color}`}
-                      >
-                        <Icon className="size-3.5" />
-                      </span>
-                      <span className="flex-1 text-foreground">
-                        {cat.category}
-                      </span>
-                      <span className="text-xs tabular-nums text-muted-foreground">
-                        {cat.pct.toFixed(0)}%
-                      </span>
-                      <span className="w-24 text-right font-medium tabular-nums text-foreground">
-                        {formatCurrency(cat.value)}
-                      </span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{ backgroundColor: cat.bar }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${cat.pct}%` }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
-        </motion.div>
+        {/* Category breakdown pie chart */}
+        <CategoryPieChart expenses={expenses} />
 
         {/* Recent activity + highlights */}
         <motion.div

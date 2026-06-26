@@ -30,3 +30,14 @@ model Budget {
 
   @@map("budgets")
 }
+
+model Income {
+  id        String   @id @default(uuid())
+  source    String
+  amount    Decimal  @db.Decimal(10, 2)
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("incomes")
+}
